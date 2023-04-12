@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ppm.h"
+#include "blur.h"
 
 int main(int argc, char *argv[])
 {
@@ -10,10 +11,11 @@ int main(int argc, char *argv[])
 
     Image img;
 
+    // read image
     read_PPM(img, read_file);
 
-    rgb_to_gray(img);
-
+    rgb_to_gray(img);   // 1. convert image to grayscale
+    gaussian_Blur(img); // 2. Gaussian Blur
     write_PPM(img, writ_file);
 
     printf("done \n");
