@@ -16,6 +16,8 @@ union Pixel
     struct
     {
         unsigned char value;
+        double mag;
+        double dir;
     } gray;
 };
 

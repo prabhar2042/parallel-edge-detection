@@ -1,6 +1,7 @@
 #include <iostream>
 #include "ppm.h"
 #include "blur.h"
+#include "sobel.h"
 
 int main(int argc, char *argv[])
 {
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
 
     rgb_to_gray(img);   // 1. convert image to grayscale
     gaussian_Blur(img); // 2. Gaussian Blur
+    sobel_filter(img);  // 3. Determine intensity gradient
     write_PPM(img, writ_file);
 
     printf("done \n");
