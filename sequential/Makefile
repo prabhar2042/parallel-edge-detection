@@ -1,8 +1,9 @@
 CC=gcc
 CXX = g++
 COPT = -O1
-CFLAGS = -std=c99 $(COPT) -g -Wall -Wextra -Wpedantic -Wconversion
+CFLAGS = -std=c99 $(COPT) -g -ggdb -Wall -Wextra -Wpedantic -Wconversion
 CFLAGS += -Wstrict-prototypes -Wwrite-strings -Wno-unused-parameter -Werror
+
 
 DEPS = $(wildcard *.h)
 ALL_SRC_FILES := $(wildcard *.cpp)
@@ -15,7 +16,8 @@ EXEC_NAME=main
 	$(CXX) -c -o $@ $< $(CFLAGS)
 
 make: $(OBJ)
-	$(CXX) -o $(EXEC_NAME) $^ $(CFLAGS)
+	$(CXX) -o $(EXEC_NAME) $^ $(CFLAGS) -g
 
 clean:
 	rm -rf *.o
+	rm -rf $(EXEC_NAME)

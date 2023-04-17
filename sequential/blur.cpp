@@ -9,10 +9,14 @@ void gaussian_Blur(Image &img)
     blurredImg.height = img.height;
     blurredImg.pixels.resize(img.height, std::vector<Pixel>(img.width));
 
+    // padding the input image to insure same size
+    int padd_size = 1; // for 3X3 kernel
+    padd_image(img, padd_size);
+
     // Apply the kernel to each pixel of the image
-    for (int row = 1; row < img.height - 1; ++row)
+    for (int row = padd_size; row < img.height - padd_size; ++row)
     {
-        for (int col = 1; col < img.width - 1; ++col)
+        for (int col = padd_size; col < img.width - padd_size; ++col)
         {
             // Convolve the kernel with the 3x3 pixel neighborhood
             float sum = 0.0;
@@ -24,7 +28,7 @@ void gaussian_Blur(Image &img)
                 }
             }
             // Store the blurred pixel in the new image
-            blurredImg.pixels[row][col].gray.value = static_cast<unsigned char>(sum);
+            blurredImg.pixels[row - 1][col - 1].gray.value = static_cast<unsigned char>(sum);
         }
     }
 
