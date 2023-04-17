@@ -12,7 +12,7 @@ OBJ := $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 CPPFLAGS := -Iinclude -MMD -MP
 CFLAGS = -g -ggdb -Wall -Wextra -Wpedantic -Wconversion
-CFLAGS += -Wstrict-prototypes -Wwrite-strings -Wno-unused-parameter -Werror
+CFLAGS += -Wwrite-strings -Wno-unused-parameter -Werror
 LDFLAGS  := -Llib
 LDLIBS   := 
 
