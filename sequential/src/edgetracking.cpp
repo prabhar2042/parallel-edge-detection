@@ -5,7 +5,7 @@ bool check_ngh(Image &img, int row, int col)
 {
 
     // iterate through pixel neighborhood
-    float sum = 0.0;
+
     for (int i = -1; i <= 1; ++i)
     {
         for (int j = -1; j <= 1; ++j)
