@@ -14,37 +14,37 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
     start = clock();
     rgb_to_gray(img); // 1. convert image to grayscale
     end = clock();
-    time.rgb_to_gray = ((double)end - start) / CLOCKS_PER_SEC;
+    time.rgb_to_gray = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.rgb_to_gray;
 
     start = clock();
     gaussian_Blur(img); // 2. Gaussian Blur
     end = clock();
-    time.gaussian_blur = ((double)end - start) / CLOCKS_PER_SEC;
+    time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.gaussian_blur;
 
     start = clock();
     sobel_filter(img); // 3. Determine intensity gradient
     end = clock();
-    time.sobel = ((double)end - start) / CLOCKS_PER_SEC;
+    time.sobel = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.sobel;
 
     start = clock();
     non_max_suppression(img); // 4. Non Maximum seperation
     end = clock();
-    time.nms = ((double)end - start) / CLOCKS_PER_SEC;
+    time.nms = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.nms;
 
     start = clock();
     double_thresholding(img); // 5. Double Thresholding
     end = clock();
-    time.double_thres = ((double)end - start) / CLOCKS_PER_SEC;
+    time.double_thres = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.double_thres;
 
     start = clock();
     edge_tracking(img); // 6. Edge Tracking
     end = clock();
-    time.edge_track = ((double)end - start) / CLOCKS_PER_SEC;
+    time.edge_track = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.edge_track;
 
     // write image
@@ -65,4 +65,6 @@ void print_time(exec_time time)
     printf("Execution time for double thresholding : %f\n", time.double_thres);
 
     printf("Execution time for edge tracking  : %f\n", time.edge_track);
+
+    printf("Total execution time for canny edge detecion  : %f\n", time.total);
 }

@@ -1,24 +1,36 @@
-CC=gcc
 CXX = g++
-COPT = -O1
-CFLAGS = -std=c99 $(COPT) -g -ggdb -Wall -Wextra -Wpedantic -Wconversion
+
+SRC_DIR := src
+OBJ_DIR := obj
+
+
+EXE_NAME := seq
+
+EXE := $(EXE_NAME)
+SRC := $(wildcard $(SRC_DIR)/*.cpp)
+OBJ := $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+
+CPPFLAGS := -Iinclude -MMD -MP
+CFLAGS = -g -ggdb -Wall -Wextra -Wpedantic -Wconversion
 CFLAGS += -Wstrict-prototypes -Wwrite-strings -Wno-unused-parameter -Werror
+LDFLAGS  := -Llib
+LDLIBS   := 
 
+.PHONY: all clean
 
-DEPS = $(wildcard *.h)
-ALL_SRC_FILES := $(wildcard *.cpp)
-OBJ:= $(patsubst %.cpp,%.o,$(ALL_SRC_FILES))
+all: $(EXE)
 
+$(EXE): $(OBJ) 
+	$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-EXEC_NAME=main
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-
-%.o: %.c $(DEPS)
-	$(CXX) -c -o $@ $< $(CFLAGS)
-
-make: $(OBJ)
-	$(CXX) -o $(EXEC_NAME) $^ $(CFLAGS) -g
+$(OBJ_DIR):
+	mkdir -p $@
 
 clean:
-	rm -rf *.o
-	rm -rf $(EXEC_NAME)
+	@$(RM) -rv $(OBJ_DIR)
+	rm -rf $(EXE)
+
+-include $(OBJ:.o=.d)

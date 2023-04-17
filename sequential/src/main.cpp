@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     char write_file[MAX_FILE_NAME];
 
     /*char read_file[MAX_FILE_NAME] = "dataset/Tiny_house__Portland.ppm";
-   char write_file[MAX_FILE_NAME] = "dataset/test.ppm";*/
+   char write_file[MAX_FILE_NAME] = "-w";*/
 
     int option = 0;
 
