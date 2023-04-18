@@ -12,13 +12,13 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
     read_PPM(img, read_file);
 
     start = clock();
-    rgb_to_gray(img); // 1. convert image to grayscale
+    rgb_to_gray(img); // 1. convert image to grayscale TODO: Krish
     end = clock();
     time.rgb_to_gray = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.rgb_to_gray;
 
     start = clock();
-    gaussian_Blur(img); // 2. Gaussian Blur
+    gaussian_Blur(img); // 2. Gaussian Blur TODO: Krish
     end = clock();
     time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.gaussian_blur;
@@ -30,7 +30,7 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
     time.total += time.sobel;
 
     start = clock();
-    non_max_suppression(img); // 4. Non Maximum seperation
+    non_max_suppression(img); // 4. Non Maximum seperation TODO: Krish
     end = clock();
     time.nms = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.nms;
