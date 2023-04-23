@@ -7,9 +7,11 @@ void rgb_to_gray(Image &img)
 
 
 #pragma omp parallel for schedule(static)
+
    for (int row = 0; row < img.height; ++row)
    {
-   #pragma omp simd
+
+#pragma omp simd
       for (int col = 0; col < img.width; ++col)
       {
 

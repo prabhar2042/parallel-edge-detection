@@ -2,6 +2,7 @@
 #define __IMAGE_H__
 
 #include <vector>
+#include <omp.h>
 #include "error.h"
 
 union Pixel

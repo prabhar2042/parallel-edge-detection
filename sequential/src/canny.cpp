@@ -54,17 +54,17 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
 void print_time(exec_time time)
 {
 
-    printf("Execution time for rgb_to_gray : %f\n", time.rgb_to_gray);
+    printf("rgb_to_gray : %f\n", time.rgb_to_gray);
 
-    printf("Execution time for gaussian_blur : %f\n", time.gaussian_blur);
+    printf("gaussian_blur : %f\n", time.gaussian_blur);
 
-    printf("Execution time for sobel filter : %f\n", time.sobel);
+    printf("sobel filter : %f\n", time.sobel);
 
-    printf("Execution time for non_maximum_suppression : %f\n", time.nms);
+    printf("non_maximum_suppression : %f\n", time.nms);
 
-    printf("Execution time for double thresholding : %f\n", time.double_thres);
+    printf("double thresholding : %f\n", time.double_thres);
 
-    printf("Execution time for edge tracking  : %f\n", time.edge_track);
+    printf("edge tracking  : %f\n", time.edge_track);
 
-    printf("Total execution time for canny edge detecion  : %f\n", time.total);
+    printf("canny edge detecion  : %f\n", time.total);
 }
