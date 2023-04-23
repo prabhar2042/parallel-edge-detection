@@ -27,7 +27,6 @@ bool check_ngh(Image &img, int row, int col)
 
 void edge_tracking(Image &img)
 {
-
     for (int i = 0; i < img.height; i++)
     {
         for (int j = 0; j < img.width; j++)

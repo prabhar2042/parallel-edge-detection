@@ -3,7 +3,7 @@
 
 void non_max_suppression(Image &img)
 {
-#pragma omp parallel for schedule(dynamic)
+//#pragma omp parallel for collapse(2) schedule(static)
     for (int i = 1; i < img.height - 1; i++)
     {
         for (int j = 1; j < img.width - 1; j++)
