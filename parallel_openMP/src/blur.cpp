@@ -1,4 +1,6 @@
 #include "blur.h"
+#include <stdio.h> // debug
+#include <time.h>  // debug
 
 void gaussian_Blur(Image &img)
 {
@@ -13,9 +15,16 @@ void gaussian_Blur(Image &img)
     int padd_size = 1; // for 3X3 kernel
     padd_image(img, padd_size);
 
-    // Apply the kernel to each pixel of the image
+    // int total_threads = 8;            // debug
+    // double start_time[total_threads]; // debug
+    // double total[total_threads];      // debug
+
+    // #pragma omp parallel for schedule(dynamic)
+    //  Apply the kernel to each pixel of the image
     for (int row = padd_size; row < img.height - padd_size; ++row)
     {
+        // int tid = omp_get_thread_num(); // debug
+        // start_time[tid] = clock();      // debug
         for (int col = padd_size; col < img.width - padd_size; ++col)
         {
             // Convolve the kernel with the 3x3 pixel neighborhood
@@ -30,7 +39,14 @@ void gaussian_Blur(Image &img)
             // Store the blurred pixel in the new image
             blurredImg.pixels[row - 1][col - 1].gray.value = static_cast<unsigned char>(sum);
         }
+        // total[tid] = ((double)clock() - (double)start_time[tid]) / CLOCKS_PER_SEC; // debug
     }
+    // Debug
+    /*for (int i = 0; i < total_threads; i++)
+    {
+        printf("tid : %d, time : %f\n", i, total[i]);
+    }
+    // Debug*/
 
     // Copy the blurred image back to the original image
     img = blurredImg;
