@@ -62,11 +62,11 @@ void non_max_suppression(Image &img)
 
 void non_max_suppression_tiled(Image &img, int tile_size)
 {
-    // #pragma omp parallel for schedule(static)
+
 #pragma omp parallel for schedule(dynamic)
-    for (int i = tile_size; i < img.height - tile_size; i += tile_size)
+    for (int i = 1; i < img.height - tile_size; i += tile_size)
     {
-        for (int j = tile_size; j < img.width - tile_size; j += tile_size)
+        for (int j = 1; j < img.width - tile_size; j += tile_size)
         {
             for (int ii = i; ii < i + tile_size; ii++)
             {

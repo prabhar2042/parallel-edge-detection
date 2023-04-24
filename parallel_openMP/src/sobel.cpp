@@ -28,14 +28,11 @@ void sobel_filter(Image &img)
 
     double dX = 0, dY = 0;
 
-
-    #pragma omp parallel for schedule(dynamic)
     // Apply the kernel to each pixel of the image
-    for (int i = padd_size; i < img.height - padd_size; i += tile_size)
+    for (int i = padd_size; i < img.height - padd_size; i++)
     {
-        for (int j = padd_size; j < img.width - padd_size; j += )
+        for (int j = padd_size; j < img.width - padd_size; j++)
         {
-
             dX = 0;
             dY = 0;
             // copy pixel value

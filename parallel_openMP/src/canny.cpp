@@ -18,7 +18,10 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
     time.total += time.rgb_to_gray;
 
     start = clock();
-    gaussian_Blur(img); // 2. Gaussian Blur TODO: Krish
+    // gaussian_Blur(img); // 2. Gaussian Blur TODO: Krish
+    // gaussian_Blur_tiled(img, TILE_SIZE_BLUR);
+    // gaussian_Blur_seperable(img);
+    gaussian_Blur_seperable_tiled(img, TILE_SIZE_BLUR);
     end = clock();
     time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.gaussian_blur;
