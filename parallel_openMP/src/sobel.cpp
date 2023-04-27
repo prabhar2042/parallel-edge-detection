@@ -35,7 +35,6 @@ void sobel_filter(Image &img)
     {
         for (int j = padd_size; j < img.width - padd_size; j++)
         {
-
             dX = 0;
             dY = 0;
             // copy pixel value
