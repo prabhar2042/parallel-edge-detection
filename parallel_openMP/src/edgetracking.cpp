@@ -27,18 +27,26 @@ bool check_ngh(Image &img, int row, int col)
 
 void edge_tracking(Image &img)
 {
-    for (int i = 0; i < img.height; i++)
+    int tile_size = 64;
+
+    #pragma omp parallel for schedule(dynamic)
+    for (int i = 0; i < img.height - tile_size; i+= tile_size)
     {
-        for (int j = 0; j < img.width; j++)
+        for (int j = 0; j < img.width - tile_size; j+= tile_size)
         {
-            if (img.grads[i][j].thres_bin == weak)
-            {
-                if (!check_ngh(img, i, j))
-                {
-                    img.grads[i][j].mag = 0;
-                    img.pixels[i][j].gray.value = 0;
+            for (int ii = i; ii < tile_size; ii++) {
+                for (int jj = j; jj < tile_size; jj++) {
+                    if (img.grads[ii][jj].thres_bin == weak)
+                    {
+                        if (!check_ngh(img, ii, jj))
+                        {
+                            img.grads[ii][jj].mag = 0;
+                            img.pixels[ii][jj].gray.value = 0;
+                        }
+                    }
                 }
             }
+            
         }
     }
 }

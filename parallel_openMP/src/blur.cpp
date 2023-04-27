@@ -13,7 +13,7 @@ void gaussian_Blur(Image &img)
 
     // padding the input image to insure same size
     int padd_size = 1; // for 3X3 kernel
-    padd_image(img, padd_size);
+    //padd_image(img, padd_size);
 
     // int total_threads = 8;            // debug
     // double start_time[total_threads]; // debug
@@ -51,3 +51,6 @@ void gaussian_Blur(Image &img)
     // Copy the blurred image back to the original image
     img = blurredImg;
 }
+
+
+
