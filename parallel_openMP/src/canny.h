@@ -21,5 +21,6 @@ struct exec_time
 
 void canny_edge_detector(exec_time &time, char *read_file, char *write_file);
 void print_time(exec_time time);
+void print_time_debug(exec_time time);
 
 #endif

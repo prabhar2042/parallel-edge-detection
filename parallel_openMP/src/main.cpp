@@ -45,4 +45,5 @@ int main(int argc, char *argv[])
     exec_time time;
     canny_edge_detector(time, read_file, write_file);
     print_time(time);
+    // print_time_debug(time);
 }
