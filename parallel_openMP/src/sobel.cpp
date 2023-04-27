@@ -24,7 +24,7 @@ void sobel_filter(Image &img)
 
     // padding the input image to insure same size
     int padd_size = 1; // for 3X3 kernel
-    //padd_image(img, padd_size);
+    padd_image(img, padd_size);
 
     double dX = 0, dY = 0;
 
@@ -40,6 +40,7 @@ void sobel_filter(Image &img)
             // copy pixel value
             gradient_img.pixels[i - 1][j - 1].gray.value = img.pixels[i][j].gray.value;
             // Convolve the kernel with the 3x3 pixel neighborhood
+            #pragma omp simd
             for (int k = -1; k <= 1; k++)
             {
                 for (int l = -1; l <= 1; l++)
@@ -85,7 +86,6 @@ void sobel_filter_tiled(Image &img, int tile_size)
 
     double dX = 0, dY = 0;
 
-
     // Apply the kernel to each pixel of the image
     for (int i = padd_size; i < img.height - tile_size - padd_size; i += tile_size)
     {
@@ -128,6 +128,6 @@ void sobel_filter_tiled(Image &img, int tile_size)
         }
     }
 
-    // Copy the  image back to the original image
+    // Copy the image back to the original image
     img = gradient_img;
 }

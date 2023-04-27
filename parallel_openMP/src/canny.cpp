@@ -27,7 +27,7 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
     time.total += time.gaussian_blur;
 
     start = clock();
-    sobel_filter(img); // 3. Determine intensity gradient
+    sobel_filter_tiled(img, TILE_SIZE); // 3. Determine intensity gradient
     end = clock();
     time.sobel = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.sobel;
