@@ -5,7 +5,6 @@
 void rgb_to_gray(Image &img)
 {
 
-
 #pragma omp parallel for schedule(static)
 
    for (int row = 0; row < img.height; ++row)
@@ -18,8 +17,7 @@ void rgb_to_gray(Image &img)
          float grayValue = 0.299 * img.pixels[row][col].rgb.r + 0.587 * img.pixels[row][col].rgb.g + 0.114 * img.pixels[row][col].rgb.b;
          img.pixels[row][col].gray.value = static_cast<unsigned char>(grayValue);
       }
-}
-
+   }
 }
 
 void padd_image(Image &img, int padd_size)
@@ -28,6 +26,7 @@ void padd_image(Image &img, int padd_size)
    int numRows = img.height;
    int numCols = img.width;
 
+#pragma omp parallel for
    // Pad top and bottom
    for (int i = 0; i < padd_size; i++)
    {
@@ -36,6 +35,7 @@ void padd_image(Image &img, int padd_size)
       img.pixels.insert(img.pixels.end(), row);
    }
 
+#pragma omp parallel for
    // Pad left and right
    for (int i = 0; i < numRows + 2 * padd_size; i++)
    {

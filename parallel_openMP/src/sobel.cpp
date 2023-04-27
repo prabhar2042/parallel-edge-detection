@@ -1,12 +1,12 @@
 #include "sobel.h"
 #include <cmath>
 
-double magnitude(double dX, double dY)
+inline double magnitude(double dX, double dY)
 {
     return sqrt(dX * dX + dY * dY);
 }
 
-double direction(double dX, double dY)
+inline double direction(double dX, double dY)
 {
     return atan2(dY, dX); // range [-pi,pi] radians
 }
@@ -24,12 +24,10 @@ void sobel_filter(Image &img)
 
     // padding the input image to insure same size
     int padd_size = 1; // for 3X3 kernel
-    //padd_image(img, padd_size);
+    padd_image(img, padd_size);
 
     double dX = 0, dY = 0;
 
-
-    #pragma omp parallel for
     // Apply the kernel to each pixel of the image
     for (int i = padd_size; i < img.height - padd_size; i++)
     {
@@ -67,7 +65,6 @@ void sobel_filter(Image &img)
     img = gradient_img;
 }
 
-
 void sobel_filter_tiled(Image &img, int tile_size)
 
 {
@@ -85,15 +82,17 @@ void sobel_filter_tiled(Image &img, int tile_size)
 
     double dX = 0, dY = 0;
 
-
+// Apply the kernel to each tile of the image
+#pragma omp parallel for schedule(dynamic)
     // Apply the kernel to each pixel of the image
     for (int i = padd_size; i < img.height - tile_size - padd_size; i += tile_size)
     {
         for (int j = padd_size; j < img.width - tile_size - padd_size; j += tile_size)
         {
-            for (int ii = i; ii < i + tile_size; ii++) 
+            for (int ii = i; ii < i + tile_size; ii++)
             {
-                for (int jj = j; jj < j + tile_size; jj++) {
+                for (int jj = j; jj < j + tile_size; jj++)
+                {
 
                     dX = 0;
                     dY = 0;
@@ -120,14 +119,70 @@ void sobel_filter_tiled(Image &img, int tile_size)
 
                     // calculate direction
                     gradient_img.grads[ii - 1][jj - 1].dir = direction(dX, dY);
-
                 }
-
             }
-            
         }
     }
 
     // Copy the  image back to the original image
     img = gradient_img;
+}
+
+void sobel_filter_no_padd(Image &img)
+
+{
+
+    // padding the input image to insure same size
+    int padd_size = 1; // for 3X3 kernel
+
+    img.grads.resize(img.height, std::vector<gradient>(img.width));
+    img.max_grad = 0;
+    // padd_image(img, padd_size);
+
+    double dX = 0, dY = 0;
+
+    // Apply the kernel to each pixel of the image
+    for (int i = padd_size; i < img.height - padd_size; i++)
+    {
+        for (int j = padd_size; j < img.width - padd_size; j++)
+        {
+            dX = 0;
+            dY = 0;
+
+            // Convolve the kernel with the 3x3 pixel neighborhood
+            for (int k = -1; k <= 1; k++)
+            {
+                for (int l = -1; l <= 1; l++)
+                {
+
+                    dX += sobel_kernelX[k + 1][l + 1] * img.pixels[i + k][j + l].gray.value; // for gradient along x
+                    dY += sobel_kernelY[k + 1][l + 1] * img.pixels[i + k][j + l].gray.value; // for gradient along y
+                }
+            }
+
+            // calculate magnitude
+            img.grads[i][j].mag = magnitude(dX, dY);
+
+            if (img.max_grad < img.grads[i][j].mag)
+            {
+                img.max_grad = img.grads[i][j].mag;
+            }
+
+            // calculate direction
+            img.grads[i][j].dir = direction(dX, dY);
+        }
+    }
+
+// update pixel values
+// Apply the kernel to each pixel of the image
+#pragma omp parallel for schedule(static)
+    for (int i = padd_size; i < img.height - padd_size; i++)
+    {
+
+        for (int j = padd_size; j < img.width - padd_size; j++)
+        {
+
+            img.pixels[i][j].gray.value = static_cast<unsigned char>(img.grads[i][j].mag);
+        }
+    }
 }
