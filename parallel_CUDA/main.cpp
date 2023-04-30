@@ -43,9 +43,8 @@ int main(int argc, char *argv[])
     }
 
     exec_time time;
+
     canny(time, read_file, write_file);
     print_time(time);
     // print_time_debug(time);
-
-    return 0;
 }

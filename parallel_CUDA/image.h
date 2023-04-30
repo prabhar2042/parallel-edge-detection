@@ -42,10 +42,8 @@ struct Image
     int width;
     int height;
     double max_grad;
-    Pixel[][] pixels;
-    gradient[][] grads;
+    Pixel **pixels;
+    gradient **grads;
 };
-
-void rgb_to_gray(Image &img);
 
 #endif

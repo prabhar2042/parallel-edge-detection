@@ -17,7 +17,7 @@ HOSTNAME=$(shell hostname)
 LIBS       :=
 FRAMEWORKS :=
 
-NVCCFLAGS=-O3 -m64 --gpu-architecture=sm_61 -ccbin=/usr/bin/gcc
+NVCCFLAGS=-O3 -m64 --gpu-architecture compute_61 -ccbin /usr/bin/gcc
 LIBS += GL glut cudart
 
 LDLIBS  := $(addprefix -l, $(LIBS))

@@ -5,7 +5,7 @@
 #include <fstream>
 #include "image.h"
 
-bool read_PPM(Image &img, const char *filename);
+void read_PPM(Image &img, const char *filename);
 
 void write_PPM(const Image &img, const char *filename);
 

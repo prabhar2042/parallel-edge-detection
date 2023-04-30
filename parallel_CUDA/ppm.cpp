@@ -1,22 +1,15 @@
 #include "ppm.h"
-#include "image.h"
 
 /**
  * @brief reads rgb image
- *
- * @param img
- * @param filename
- * @return true
- * @return false
  */
-bool read_PPM(Image &img, const char *filename)
+void read_PPM(Image &img, const char *filename)
 {
     std::ifstream file(filename, std::ios::binary);
 
     if (!file)
     {
         std::cerr << "Failed to open image file." << std::endl;
-        return FAIL;
     }
 
     // Read PPM header
@@ -26,7 +19,6 @@ bool read_PPM(Image &img, const char *filename)
     if (magic != "P3" && magic != "P6")
     {
         std::cerr << "Invalid PPM format." << std::endl;
-        return FAIL;
     }
 
     // Allocate memory for image data
@@ -58,7 +50,6 @@ bool read_PPM(Image &img, const char *filename)
         if (maxval != 255)
         {
             std::cerr << "Unsupported maxval value." << std::endl;
-            return FAIL;
         }
         file.get(); // Read and discard newline character after header
         for (int row = 0; row < img.height; ++row)
@@ -68,7 +59,7 @@ bool read_PPM(Image &img, const char *filename)
     }
     file.close();
 
-    return PASS;
+    
 }
 
 /**
