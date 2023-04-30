@@ -14,7 +14,7 @@ void gaussian_Blur(Image &img)
 
     // padding the input image to insure same size
     int padd_size = 1; // for 3X3 kernel
-    //padd_image(img, padd_size);
+    // padd_image(img, padd_size);
 
     //
     //  Apply the kernel to each pixel of the image
@@ -34,7 +34,7 @@ void gaussian_Blur(Image &img)
                 }
             }
             // Store the blurred pixel in the new image
-            blurredImg.pixels[row - 1][col - 1].gray.value = static_cast<unsigned char>(sum);
+            blurredImg.pixels[row][col].gray.value = static_cast<unsigned char>(sum);
         }
     }
 
@@ -215,6 +215,3 @@ void gaussian_Blur_seperable_tiled(Image &img, int tile_size)
     // Copy the blurred image back to the original image
     img = blurredImg;
 }
-
-
-

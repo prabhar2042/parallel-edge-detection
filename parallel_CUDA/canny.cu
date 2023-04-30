@@ -7,151 +7,145 @@
 #include "ppm.h"
 #include "image.h"
 
-/**
- * @brief reads rgb image
- *
- * @param img
- * @param filename
- * @return true
- * @return false
- */
-bool read_PPM(Image &img, const char *filename)
+#define THREADS_PER_BLOCK 16
+
+__global__ void rgb_to_gray_kernel(Image device_img)
 {
-    std::ifstream file(filename, std::ios::binary);
 
-    if (!file)
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= device_img.height || col >= device_img.width)
     {
-        std::cerr << "Failed to open image file." << std::endl;
-        return FAIL;
-    }
-
-    // Read PPM header
-    std::string magic;
-    int maxval;
-    file >> magic >> img.width >> img.height >> maxval;
-    if (magic != "P3" && magic != "P6")
-    {
-        std::cerr << "Invalid PPM format." << std::endl;
-        return FAIL;
-    }
-
-    // Allocate memory for image data
-    img.pixels.resize(img.height, std::vector<Pixel>(img.width));
-
-    // Read image data
-    if (magic == "P3")
-    {
-        // P3 format: ASCII
-        int r, g, b;
-        for (int row = 0; row < img.height; ++row)
-        {
-            for (int col = 0; col < img.width; ++col)
-            {
-                file >> r >> g >> b;
-                img.pixels[row][col].rgb.r = static_cast<unsigned char>(r);
-                img.pixels[row][col].rgb.g = static_cast<unsigned char>(g);
-                img.pixels[row][col].rgb.b = static_cast<unsigned char>(b);
-            }
-        }
-    }
-    else
-    {
-        // P6 format: binary
-        if (maxval != 255)
-        {
-            std::cerr << "Unsupported maxval value." << std::endl;
-            return FAIL;
-        }
-        file.get(); // Read and discard newline character after header
-        for (int row = 0; row < img.height; ++row)
-        {
-            file.read(reinterpret_cast<char *>(&img.pixels[row][0]), img.width * sizeof(Pixel));
-        }
-    }
-    file.close();
-
-    return PASS;
-}
-
-/**
- * @brief writes gray scale image
- *
- * @param filename
- * @param img
- */
-void write_PPM(const Image &img, const char *filename)
-{
-    std::ofstream file(filename, std::ios::binary);
-    if (!file)
-    {
-        std::cerr << "Failed to create image file." << std::endl;
         return;
     }
 
-    // Write PPM header
-    file << "P5\n"
-         << img.width << " " << img.height << "\n255\n";
+    double grayValue = 0.299 * device_img.pixels[row][col].rgb.r +
+                       0.587 * device_img.pixels[row][col].rgb.g +
+                       0.114 * device_img.pixels[row][col].rgb.b;
 
-    // Write image data
-    for (int row = 0; row < img.height; ++row)
+    device_img.pixels[row][col].gray.value = static_cast<unsigned char>(grayValue);
+}
+
+__global__ void gaussianblur_kernel(Image *device_img, Image *device_result)
+{
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (row >= device_img.height || col >= device_img.width || row == 0 || col == 0)
     {
-        for (int col = 0; col < img.width; ++col)
+        return;
+    }
+
+    float sum = 0.0;
+    for (int i = -1; i <= 1; ++i)
+    {
+        for (int j = -1; j <= 1; ++j)
         {
-            const Pixel &pixel = img.pixels[row][col];
-            unsigned char value = pixel.gray.value;
-            file.write(reinterpret_cast<const char *>(&value), sizeof(unsigned char));
+            sum += blur_kern[i + 1][j + 1] * img.pixels[row + i][col + j].gray.value;
         }
     }
-    file.close();
+    // Store the blurred pixel in the new image
+    device_result.pixels[row][col].gray.value = static_cast<unsigned char>(sum);
 }
 
-
-__global__ void rgb_to_gray_kernel(Image *img) {
-
+__global__ void sobel_kernel(Image *img)
+{
 }
 
-__global__ void blur_kernel(Image *img) {
-
+__global__ void nms_kernel(Image *img)
+{
 }
 
-__global__ void sobel_kernel(Image *img) {
-
+__global__ void threshholding_kernel(Image *img)
+{
 }
 
-__global__ void nms_kernel(Image *img) {
-
+__global__ void edge_tracking_kernel(Image *img)
+{
 }
 
-__global__ void threshholding_kernel(Image *img) {
-
-}
-
-__global__ void edge_tracking_kernel(Image *img) {
-
-}
-
-void canny(char *read_file, char *write_file) {
-
-    clock_t start, end;
-    time.total = 0;
-    Image img;
+void canny(exec_time &time, char *read_file, char *write_file)
+{
+    // allocate memory for host image on stack
+    Image host_img;
 
     // read image
-    read_PPM(img, read_file);
+    read_PPM(host_img, read_file);
 
-    const int threadsPerBlock = 512;
-    const int blocks = (N + threadsPerBlock - 1) / threadsPerBlock;
+    // allocate memory for image on GPU
+    Image device_img;
+    cudaMalloc((void **)&device_img.pixels, host_img.width * host_img.height * sizeof(Pixel));
+    cudaMalloc((void **)&device_img.grads, host_img.width * host_img.height * sizeof(gradient));
+    cudaMalloc((void **)&device_img.width, sizeof(int));
+    cudaMalloc((void **)&device_img.height, sizeof(int));
 
-    rgb_to_gray_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result);
+    // copy image to GPU
+    cudaMemcpy(device_img.pixels, &(host_img.pixels[0][0]), host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyHostToDevice);
+    cudaMemcpy(device_img.height, &(host_img.height), sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(device_img.width, &(host_img.width), sizeof(int), cudaMemcpyHostToDevice);
 
-    blur_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result);
-    
-    sobel_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result);
+    // Define block and grid dimensions
+    dim3 blockDim(THREADS_PER_BLOCK, THREADS_PER_BLOCK);
+    dim3 gridDim((host_img.width + blockDim.x - 1) / blockDim.x,
+                 (host_img.height + blockDim.y - 1) / blockDim.y);
 
-    nms_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result);
+    double start, end;
 
-    threshholding_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result);
+    // start image detection on GPU
 
-    edge_tracking_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result);
+    start = clock();
+    rgb_to_gray_kernel<<<blocks, threadsPerBlock>>>(device_img); // 1. convert image to grayscale
+    cudaDeviceSynchronize();
+    end = clock();
+    time.rgb_to_gray = ((double)end - (double)start) / CLOCKS_PER_SEC;
+    time.total += time.rgb_to_gray;
 
+    start = clock();
+    gaussianblur_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 2. Gaussian Blur
+    cudaDeviceSynchronize();
+    end = clock();
+    time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
+    time.total += time.gaussian_blur;
+
+    start = clock();
+    sobel_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 3. Determine intensity gradient
+    cudaDeviceSynchronize();
+    end = clock();
+    time.sobel = ((double)end - (double)start) / CLOCKS_PER_SEC;
+    time.total += time.sobel;
+
+    start = clock();
+    nms_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 4. Non Maximum seperation
+    cudaDeviceSynchronize();
+    end = clock();
+    time.nms = ((double)end - (double)start) / CLOCKS_PER_SEC;
+    time.total += time.nms;
+
+    start = clock();
+    threshholding_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 5. Double Thresholding
+    cudaDeviceSynchronize();
+    end = clock();
+    time.double_thres = ((double)end - (double)start) / CLOCKS_PER_SEC;
+    time.total += time.double_thres;
+
+    start = clock();
+    edge_tracking_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 6. Edge Tracking
+    cudaDeviceSynchronize();
+    end = clock();
+    time.edge_track = ((double)end - (double)start) / CLOCKS_PER_SEC;
+    time.total += time.edge_track;
+
+    // Copy image data from device to host
+    cudaMemcpy(&(host_img.pixels[0][0]), device_img.pixels, host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&(host_img.grads[0][0]), device_img.grads, host_img.width * host_img.height * sizeof(gradient), cudaMemcpyDeviceToHost);
+
+    // write image
+    write_PPM(host_img, write_file);
+
+    // free device memory space
+    cudaFree(device_img.pixels);
+    cudaFree(device_img.grads);
+    cudaFree(device_img.width);
+    cudaFree(device_img.height);
 }

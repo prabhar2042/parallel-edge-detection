@@ -42,12 +42,10 @@ struct Image
     int width;
     int height;
     double max_grad;
-    std::vector<std::vector<Pixel>> pixels;
-    std::vector<std::vector<gradient>> grads;
+    Pixel[][] pixels;
+    gradient[][] grads;
 };
 
 void rgb_to_gray(Image &img);
-void padd_image(Image &img, int padd_size);
-void debug_print(Image &img);
 
 #endif
