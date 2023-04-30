@@ -2,7 +2,7 @@ EXECUTABLE := parallel_cuda
 LDFLAGS=-L/usr/local/cuda-11.7/lib64/ -lcudart
 CU_FILES   := canny.cu
 CU_DEPS    :=
-CC_FILES := $(notdir $(wildcard .cpp))
+CC_FILES := $(notdir $(wildcard *.cpp))
 
 all: $(EXECUTABLE)
 
@@ -33,19 +33,20 @@ OBJ += $(patsubst %.cu,$(OBJDIR)/%.o,$(CU_FILES))
 default: $(EXECUTABLE)
 
 dirs:
-    mkdir -p $(OBJDIR)/
+	mkdir -p $(OBJDIR)/
 
 clean:
-    rm -rf $(OBJDIR) ~ $(EXECUTABLE) $(LOGS).ppm
+	rm -rf $(OBJDIR) *~ $(EXECUTABLE) $(LOGS) *.ppm
 
 export: $(EXFILES)
-    cp -p $(EXFILES) $(STARTER)
+	cp -p $(EXFILES) $(STARTER)
 
 $(EXECUTABLE): dirs $(OBJ)
-    $(NVCC) $(NVCCFLAGS) $(OBJ) -o $@ $(LDFLAGS) $(LDLIBS) $(LDFRAMEWORKS)
+	$(NVCC) $(NVCCFLAGS) $(OBJ) -o $@ $(LDFLAGS) $(LDLIBS) $(LDFRAMEWORKS)
 
 $(OBJDIR)/%.o: %.cpp
-    $(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OBJDIR)/%.o: %.cu
-    $(NVCC) $(NVCCFLAGS) -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
+	
