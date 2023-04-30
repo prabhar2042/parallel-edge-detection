@@ -46,4 +46,6 @@ int main(int argc, char *argv[])
     canny(time, read_file, write_file);
     print_time(time);
     // print_time_debug(time);
+
+    return 0;
 }
