@@ -43,7 +43,6 @@ struct Image
     int height;
     double max_grad;
     Pixel **pixels;
-    gradient **grads;
 };
 
 #endif

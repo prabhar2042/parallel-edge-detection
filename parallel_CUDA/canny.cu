@@ -8,22 +8,26 @@
 
 #define THREADS_PER_BLOCK 16
 
+__constant__ float blur_kernel[3][3] = {{0.0625, 0.125, 0.0625},
+                                        {0.125, 0.25, 0.125},
+                                        {0.0625, 0.125, 0.0625}};
 
-__global__ void rgb_to_gray_kernel(Image *device_img)
+__global__ void rgb_to_gray_kernel(Pixels *pixels, int height, int width)
 {
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (row >= device_img->height || col >= device_img->width)
+    if (row >= height || col >= width)
     {
         return;
     }
 
-    double grayValue = 0.299 * device_img->pixels[row][col].rgb.r +
-                       0.587 * device_img->pixels[row][col].rgb.g +
-                       0.114 * device_img->pixels[row][col].rgb.b;
+    double grayValue = 0.299 * pixels[row * width + col].rgb.r +
+                       0.587 * pixels[row * width + col].rgb.g +
+                       0.114 * pixels[row * width + col].rgb.b;
 
-    device_img->pixels[row][col].gray.value = 0;
+    // pixels[row * width + col].gray.value = static_cast<unsigned char>(grayValue);
+    pixels[row * width + col].gray.value = 0;
 }
 
 __global__ void gaussianblur_kernel(Image device_img, Image device_result)
@@ -35,7 +39,7 @@ __global__ void gaussianblur_kernel(Image device_img, Image device_result)
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (row >= (device_img.height - 1) || col >= (device_img.width - 1) || row == 0 || col == 0)
+    if (row > (device_img.height - 1) || col > (device_img.width - 1) || row < 1 || col < 1)
     {
         return;
     }
@@ -76,35 +80,21 @@ void canny(exec_time &time, char *read_file, char *write_file)
     // read image
     read_PPM(host_img, read_file);
 
+    printf("read done \n");
+
+    // flatten Pixel array
+    Pixel host_flat_pixels[host_img.height * host_img.width];
+    flatten_array(host_img, host_flat_pixels);
+
     // allocate memory for image on GPU
-    Image *device_img;
-    
-    cudaMalloc((void **)&device_img, sizeof(Image));
-
-    printf("done mallocing\n");
-    cudaMalloc(&(device_img->pixels), host_img.width * host_img.height * sizeof(Pixel));
-    printf("done mallocing 2\n");
-    cudaMalloc((void **)&device_img->grads, host_img.width * host_img.height * sizeof(gradient));
-
-    
+    Pixel *device_pixels;
+    cudaMalloc((void **)&device_pixels, host_img.width * host_img.height * sizeof(Pixel));
+    printf("malloc 1 done  \n");
 
     // copy image to GPU
-    cudaMemcpy(device_img->pixels, &(host_img.pixels[0][0]), host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyHostToDevice);
-    cudaMemcpy(&device_img->height, &(host_img.height), sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(&device_img->width, &(host_img.width), sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(device_pixels, host_flat_pixels, host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyHostToDevice);
 
-     
-
-
-    /* Image *device_result;
-    cudaMalloc((void *)device_result, sizeof(Image))
-    cudaMalloc((void **)&device_result.pixels, host_img.width * host_img.height * sizeof(Pixel));
-    cudaMalloc((void **)&device_result.grads, host_img.width * host_img.height * sizeof(gradient));
-
-    cudaMemcpy(device_result.pixels, &(host_img.pixels[0][0]), host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyHostToDevice);
-    cudaMemcpy(&device_result.height, &(host_img.height), sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(&device_result.width, &(host_img.width), sizeof(int), cudaMemcpyHostToDevice); */
-
+    printf("memcpy done  \n");
 
     // Define block and grid dimensions
     dim3 blockDim(THREADS_PER_BLOCK, THREADS_PER_BLOCK);
@@ -116,21 +106,19 @@ void canny(exec_time &time, char *read_file, char *write_file)
     // start image detection on GPU
 
     start = clock();
-    rgb_to_gray_kernel<<<blockDim, gridDim>>>(device_img); // 1. convert image to grayscale
+    rgb_to_gray_kernel<<<blockDim, gridDim>>>(device_pixels, host_img.height, host_img.width); // 1. convert image to grayscale
     cudaDeviceSynchronize();
     end = clock();
     time.rgb_to_gray = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.rgb_to_gray;
 
-    start = clock();
-    //gaussianblur_kernel<<<blockDim, gridDim>>>(device_img, device_result); // 2. Gaussian Blur
-    cudaDeviceSynchronize();
-    end = clock();
-    time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
-    time.total += time.gaussian_blur;
-
-    
     /*
+        start = clock();
+        gaussianblur_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 2. Gaussian Blur
+        cudaDeviceSynchronize();
+        end = clock();
+        time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
+        time.total += time.gaussian_blur;
 
         start = clock();
         sobel_kernel<<<blocks, threadsPerBlock>>>(device_img, device_result); // 3. Determine intensity gradient
@@ -161,19 +149,17 @@ void canny(exec_time &time, char *read_file, char *write_file)
         time.total += time.edge_track;
 
         */
-    
+
     // Copy image data from device to host
 
-    cudaMemcpy(&(host_img.pixels), &(device_img->pixels), host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&(host_img.grads), &(device_img->grads), host_img.width * host_img.height * sizeof(gradient), cudaMemcpyDeviceToHost);
+    printf("I am here\n");
+    cudaMemcpy(host_flat_pixels, device_pixels, host_img.width * host_img.height * sizeof(Pixel), cudaMemcpyDeviceToHost);
+
+    unflatten_pixel_array(host_img, host_flat_pixels);
 
     // write image
     write_PPM(host_img, write_file);
 
     // free device memory space
-    cudaFree(device_img->pixels);
-    cudaFree(device_img->grads);
-    cudaFree(device_img);
-
-
+    cudaFree(device_pixels);
 }
