@@ -91,26 +91,3 @@ void write_PPM(const Image &img, const char *filename)
     }
     file.close();
 }
-
-void flatten_pixel_array(Image img, Pixel *flat_pixels)
-{
-
-    for (int i = 0; i < img.height; i++)
-    {
-        for (int j = 0; j < img.width; j++)
-        {
-            flat_pixels[i * img.width + j] = img.pixels[i][j];
-        }
-    }
-}
-
-void unflatten_pixel_array(Image img, Pixel *flat_pixels)
-{
-    for (int i = 0; i < img.height; i++)
-    {
-        for (int j = 0; j < img.width; j++)
-        {
-            img.pixels[i][j] = flat_pixels[i * img.width + j];
-        }
-    }
-}

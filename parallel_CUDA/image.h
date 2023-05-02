@@ -45,4 +45,5 @@ struct Image
     Pixel **pixels;
 };
 
+
 #endif
