@@ -3,6 +3,7 @@
 
 void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
 {
+    omp_set_num_threads(8);
 
     clock_t start, end;
     time.total = 0;

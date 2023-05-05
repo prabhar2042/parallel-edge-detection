@@ -37,8 +37,8 @@ void sobel_filter(Image &img)
             dY = 0;
             // copy pixel value
             gradient_img.pixels[i - 1][j - 1].gray.value = img.pixels[i][j].gray.value;
-            // Convolve the kernel with the 3x3 pixel neighborhood
-            #pragma omp simd
+// Convolve the kernel with the 3x3 pixel neighborhood
+#pragma omp simd
             for (int k = -1; k <= 1; k++)
             {
                 for (int l = -1; l <= 1; l++)
@@ -130,7 +130,6 @@ void sobel_filter_tiled(Image &img, int tile_size)
 }
 
 void sobel_filter_no_padd(Image &img)
-
 {
 
     // padding the input image to insure same size
@@ -184,6 +183,73 @@ void sobel_filter_no_padd(Image &img)
         {
 
             img.pixels[i][j].gray.value = static_cast<unsigned char>(img.grads[i][j].mag);
+        }
+    }
+}
+
+void sobel_filter_no_pad_tiled(Image &img, int tile_size)
+{
+    int padd_size = 1; // for 3x3 kernel
+
+    img.grads.resize(img.height, std::vector<gradient>(img.width));
+    img.max_grad = 0;
+
+    // Apply the kernel to each tile of the image
+    for (int tile_y = 0; tile_y < img.height; tile_y += tile_size)
+    {
+        for (int tile_x = 0; tile_x < img.width; tile_x += tile_size)
+        {
+            int end_row = std::min(tile_y + tile_size, img.height);
+            int end_col = std::min(tile_x + tile_size, img.width);
+
+            // Convolve the kernel with each pixel of the tile
+            for (int i = tile_y + padd_size; i < end_row - padd_size; ++i)
+            {
+                for (int j = tile_x + padd_size; j < end_col - padd_size; ++j)
+                {
+                    double dX = 0.0;
+                    double dY = 0.0;
+
+                    // Convolve the kernel with the 3x3 pixel neighborhood
+                    for (int k = -1; k <= 1; ++k)
+                    {
+                        for (int l = -1; l <= 1; ++l)
+                        {
+                            dX += sobel_kernelX[k + 1][l + 1] * img.pixels[i + k][j + l].gray.value; // for gradient along x
+                            dY += sobel_kernelY[k + 1][l + 1] * img.pixels[i + k][j + l].gray.value; // for gradient along y
+                        }
+                    }
+
+                    // calculate magnitude
+                    img.grads[i][j].mag = magnitude(dX, dY);
+                    if (img.max_grad < img.grads[i][j].mag)
+                    {
+                        img.max_grad = img.grads[i][j].mag;
+                    }
+
+                    // calculate direction
+                    img.grads[i][j].dir = direction(dX, dY);
+                }
+            }
+        }
+    }
+
+    // Update pixel values
+    for (int tile_y = 0; tile_y < img.height; tile_y += tile_size)
+    {
+        for (int tile_x = 0; tile_x < img.width; tile_x += tile_size)
+        {
+            int end_row = std::min(tile_y + tile_size, img.height);
+            int end_col = std::min(tile_x + tile_size, img.width);
+
+            // Update the pixel values within each tile
+            for (int i = tile_y + padd_size; i < end_row - padd_size; ++i)
+            {
+                for (int j = tile_x + padd_size; j < end_col - padd_size; ++j)
+                {
+                    img.pixels[i][j].gray.value = static_cast<unsigned char>(img.grads[i][j].mag);
+                }
+            }
         }
     }
 }

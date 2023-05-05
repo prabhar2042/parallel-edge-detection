@@ -1,6 +1,10 @@
 #include "canny.h"
 #include <time.h>
 
+#include <iostream>
+#include <fstream>
+using namespace std;
+
 void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
 {
 
@@ -17,17 +21,37 @@ void canny_edge_detector(exec_time &time, char *read_file, char *write_file)
     time.rgb_to_gray = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.rgb_to_gray;
 
+
     start = clock();
     gaussian_Blur(img); // 2. Gaussian Blur TODO: Krish
     end = clock();
     time.gaussian_blur = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.gaussian_blur;
 
+
+    // print values here
+    ofstream myfile;
+    myfile.open ("log.txt");
+
+    myfile << "Gaussian\n";
+
+    for (int i = 0; i < (int)img.pixels.size(); i++)
+    {
+        for (int j = 0; j < (int)img.pixels[i].size(); j++)
+        {
+            Pixel p = img.pixels[i][j];
+            myfile << "Gray: " << (int) p.gray.value << "\n";
+        }
+    }
+
+    myfile.close();
+
     start = clock();
     sobel_filter(img); // 3. Determine intensity gradient
     end = clock();
     time.sobel = ((double)end - (double)start) / CLOCKS_PER_SEC;
     time.total += time.sobel;
+
 
     start = clock();
     non_max_suppression(img); // 4. Non Maximum seperation TODO: Krish

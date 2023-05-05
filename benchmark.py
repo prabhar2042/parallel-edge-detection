@@ -61,7 +61,11 @@ def get_image_stats(image_id):
     seq_times = parser_result(seq_ret)
     mp_ret = run_openMP(image_name)
     mp_times = parser_result(mp_ret)
+    cuda_ret = run_cuda(image_name)
+    cuda_times = parser_result(cuda_ret)
     get_speed_up(seq_times, mp_times)
+    print(f'***************************************\n\n')
+    get_speed_up(seq_times, cuda_times)
 
 
 if len(sys.argv) != 3:
