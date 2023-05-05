@@ -1,7 +1,7 @@
 
 # Parallelizing the Canny Edge Detection Algorithm using OpenMP and CUDA - Pratik Bharadwaj, Krish Sethi
 
-URL: 
+URL: https://prabhar2042.github.io/parallel-edge-detection/
 
 ## Summary
 We are going to parallelize the process of detecting edges in images using the Canny Edge Detector algorithm. 
@@ -64,7 +64,7 @@ We believe the combination of the GHC clusters and the C++ language should be en
 
 ## Project Writeup
 
-[Writeup](https://linktodocumentation)
+[Writeup](https://docs.google.com/document/d/1qFyIs97qpUTMWhTNwHaohX0ZFKUELFTRLYlrpopSufg/edit?usp=sharing)
 
 
 
